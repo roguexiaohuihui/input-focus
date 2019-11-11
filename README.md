@@ -1,34 +1,50 @@
-# Cat Coding — A Webview API Sample
+# A Webview API Sample
 
-Demonstrates VS Code's [webview API](https://code.visualstudio.com/api/extension-guides/webview). This includes:
-
-- Creating and showing a basic webview.
-- Dynamically updating a webview's content.
-- Loading local content in a webview.
-- Running scripts in a webview.
-- Sending message from an extension to a webview.
-- Sending messages from a webview to an extension.
-- Using a basic content security policy.
-- Webview lifecycle and handling dispose.
-- Saving and restoring state when the panel goes into the background.
-- Serialization and persistence across VS Code reboots.
-
-## Demo
-
-![demo](demo.gif)
-
-## VS Code API
-
-### `vscode` module
-
-- [`window.createWebviewPanel`](https://code.visualstudio.com/api/references/vscode-api#window.createWebviewPanel)
-- [`window.registerWebviewPanelSerializer`](https://code.visualstudio.com/api/references/vscode-api#window.registerWebviewPanelSerializer)
 
 ## Running the example
 
-- Open this example in VS Code 1.25+
+- Open this example in VS Code 1.40+
 - `npm install`
 - `npm run watch` or `npm run compile`
 - `F5` to start debugging
 
-Run the `Cat Coding: Start cat coding session` to create the webview.
+1、Run the `Cat Coding: Start cat coding session` to create the webview.
+
+the first time you create a webview, the focus is normal
+
+2、Run again  the `Cat Coding: Start cat coding session` to create the webview.
+
+the focus is normal
+
+3、Switching to the webview in step 1, this focus is not working
+
+		this._panel.onDidChangeViewState(
+			e => {
+				if (this._panel.visible) {
+					this._panel.webview.postMessage({ command: 'showFocus' });
+					this._update();
+				}
+			},
+			null,
+			this._disposables
+		);
+    
+I listened for the toggle event and sent a message to the web to make it focus, but the focus didn't work
+
+media/main.js:
+
+	var input = document.getElementById('input_1')
+	input.focus()
+	// Handle messages sent from the extension to the webview
+	window.addEventListener('message', event => {
+		const message = event.data // The json data that the extension sent
+		switch (message.command) {
+			case 'showFocus':
+				console.log('showFocus')
+				console.log('input:', input)
+				input.focus()
+				break
+		}
+	})
+
+help：I want to actively bring the webview into focus again when I switch back
